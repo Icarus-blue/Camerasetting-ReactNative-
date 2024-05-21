@@ -3,7 +3,6 @@ import { StyleSheet, Text, View, TouchableOpacity, Image, ScrollView } from 'rea
 import { Camera, CameraType, WhiteBalance } from 'expo-camera/legacy';
 import * as MediaLibrary from 'expo-media-library';
 import Button from '@/components/Button';
-import Slider from '@react-native-community/slider';
 
 export default function Home() {
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
@@ -11,6 +10,7 @@ export default function Home() {
   const [type, setType] = useState<CameraType>(Camera.Constants.Type.back);
   const [whiteBalance, setWhiteBalance] = useState<WhiteBalance>(Camera.Constants.WhiteBalance.auto);
   const [flash, setFlash] = useState<Camera.Constants.FlashMode>(Camera.Constants.FlashMode.off);
+  const [isClick, setIsClick] = useState<boolean>(false);
   const cameraRef = useRef<Camera | null>(null);
 
   useEffect(() => {
@@ -31,31 +31,7 @@ export default function Home() {
       }
     }
   };
-
-  const renderWhiteBalanceControls = () => {
-    return (
-      <ScrollView
-        horizontal
-        style={styles.scrollContainer}
-        contentContainerStyle={styles.scrollContent}
-      >
-        <Text style={styles.label}>White Balance:</Text>
-        <TouchableOpacity
-          style={[styles.whiteBalanceButton, whiteBalance === Camera.Constants.WhiteBalance.auto && styles.selected]}
-          onPress={() => setWhiteBalance(Camera.Constants.WhiteBalance.auto)}
-        >
-          <Text style={styles.whiteBalanceText}>Off</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.whiteBalanceButton, whiteBalance === Camera.Constants.WhiteBalance.sunny && styles.selected]}
-          onPress={() => setWhiteBalance(Camera.Constants.WhiteBalance.sunny)}
-        >
-          <Text style={styles.whiteBalanceText}>Auto</Text>
-        </TouchableOpacity>     
-      </ScrollView>
-    );
-  };
-
+  
   if (hasCameraPermission === null) {
     return <View style={styles.container}><Text>Requesting camera permission...</Text></View>;
   }
@@ -91,36 +67,63 @@ export default function Home() {
           }}
         >
           <View style={{
-            flexDirection: 'row',
+            flexDirection: 'column',
             justifyContent: 'space-between',
-            padding: 50
+            position: 'absolute',
+            right: 10,
+            top: 80
           }}>
             <Button
               title={''}
-              icon={'retweet'}
+              icon={type === CameraType.back ? 'camera-reverse' : 'camera-reverse-outline'}
+              iconstyle={'Ionicons'}
               onPress={() => {
                 setType(type === CameraType.back ? CameraType.front : CameraType.back);
               }} />
             <Button
               title=''
-              icon={'flash'}
+              icon={flash ? 'flash-on' : 'flash-off'}
+              iconstyle={'MaterialIcons'}
               onPress={() => {
                 setFlash(flash === Camera.Constants.FlashMode.off ? Camera.Constants.FlashMode.on : Camera.Constants.FlashMode.off)
               }}
             />
+            <Button
+              title=''
+              icon={'white-balance-sunny'}
+              iconstyle={'MaterialCommunityIcons'}
+              onPress={() => {
+                setIsClick(prev => !prev)
+              }}
+            />
+            {isClick && (
+              <View style={styles.balanceContainer}>
+                <Button
+                  title='Auto'
+                  icon={'white-balance-auto'}
+                  iconstyle={'MaterialCommunityIcons'}
+                  onPress={() => setWhiteBalance(Camera.Constants.WhiteBalance.auto)}
+                />
+                <Button
+                  title='Off'
+                  icon={'moon-waxing-crescent'}
+                  iconstyle={'MaterialCommunityIcons'}
+                  onPress={() => setWhiteBalance(Camera.Constants.WhiteBalance.manual)}
+                />
+              </View>
+            )}
           </View>
         </Camera>
       )}
       <View style={styles.buttonContainer}>
         {image ? (
           <View>
-            <Button title={'Re-take'} icon={'retweet'} onPress={() => setImage(null)} />
-            <Button title={'Save'} icon={'check'} onPress={saveImage} />
+            <Button title={'Re-take'} icon={'retweet'} iconstyle='Entypo' onPress={() => setImage(null)} />
+            <Button title={'Save'} icon={'check'} iconstyle='MaterialIcons' onPress={saveImage} />
           </View>
         ) : (
           <>
-            {renderWhiteBalanceControls()}
-            <Button title={'Take a photo'} icon="camera" onPress={takePicture} />
+            <Button title={'Take a photo'} icon="camera" iconstyle='MaterialIcons' onPress={takePicture} />
           </>
         )}
       </View>
@@ -175,4 +178,17 @@ const styles = StyleSheet.create({
     right: 0,
     alignItems: 'center',
   },
+  balanceContainer: {
+    position: 'absolute',
+    height: 50,
+    borderRadius: 20,
+    width: 200,
+    borderColor: 'white',
+    borderWidth: 2,
+    top: 120,
+    right: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: "center"
+  }
 });
